@@ -26,8 +26,8 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
 
-    const parcelsCollection = client.db('RapidRush').collection('percels')
-
+    const parcelsCollection = client.db('RapidRush').collection('parcels')
+    // To save user parcel data api
     app.post("/parcels", async(req,res)=>{
         try{
             const parcel = req.body;
@@ -37,7 +37,11 @@ async function run() {
             console.log(error);
         }
     })
-
+    // To get user parcel data api 
+    app.get("/bookings", async(req, res)=>{
+      const result = await parcelsCollection.find().toArray();
+      res.send(result);
+    })
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
