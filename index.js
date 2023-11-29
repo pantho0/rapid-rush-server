@@ -1,16 +1,13 @@
-const express = require('express');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const cors = require('cors');
-require('dotenv').config()
+const express = require("express");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const cors = require("cors");
+require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-
-// middleware : 
-app.use(cors())
-app.use(express.json())
-
-
+// middleware :
+app.use(cors());
+app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER_DB}:${process.env.USER_PASS}@cluster0.guubgk2.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -20,52 +17,51 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
-
-    const parcelsCollection = client.db('RapidRush').collection('parcels')
+    const parcelsCollection = client.db("RapidRush").collection("parcels");
     // To save user parcel data api
-    app.post("/parcels", async(req,res)=>{
-        try{
-            const parcel = req.body;
-            const result = await parcelsCollection.insertOne(parcel)
-            res.send(result);
-        }catch(error){
-            console.log(error);
+    app.post("/parcels", async (req, res) => {
+      try {
+        const parcel = req.body;
+        const result = await parcelsCollection.insertOne(parcel);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    // To get user all parcel data api
+    app.get("/bookings", async (req, res) => {
+      try {
+        let query = {};
+        if (req.query.email) {
+          query = { email: req.query?.email };
         }
-    })
-    // To get user all parcel data api 
-    app.get("/bookings", async(req, res)=>{
-      try{
-        let query = {}
-      if(req.query.email){
-        query = {email : req.query?.email}
-      }
-      const result = await parcelsCollection.find(query).toArray();
-      res.send(result);
-      }
-      catch(error){
+        const result = await parcelsCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
         console.log(error);
       }
-    })
+    });
     // To get single parcel api
-    app.get("/update/:id",async(req,res)=>{
-      try{
+    app.get("/update/:id", async (req, res) => {
+      try {
         const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
-      const result = await parcelsCollection.findOne(query);
-      res.send(result)
-      }catch(error){
+        const query = { _id: new ObjectId(id) };
+        const result = await parcelsCollection.findOne(query);
+        res.send(result);
+      } catch (error) {
         console.log(error);
       }
-    })
+    });
     // To update parcel api
-    app.put("/update/:id", async(req,res)=>{
+    app.put("/update/:id", async (req, res) => {
       const id = req.params.id;
-      const {name,
+      const {
+        name,
         email,
         phone,
         type,
@@ -80,50 +76,57 @@ async function run() {
         bookingDate,
         deliveryManId,
         status,
-        approxDelivery} = req.body;
-      const filter = {_id: new ObjectId(id)};
+        approxDelivery,
+      } = req.body;
+      const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const updatedDoc = {
-        $set: {name,
-        email,
-        phone,
-        type,
-        receiverName,
-        weight,
-        receiverAddress,
-        receiverPhone,
-        requestedTime,
-        latitude,
-        longitude,
-        price,
-        bookingDate,
-        deliveryManId,
-        status,
-        approxDelivery}}
-        const result = await parcelsCollection.updateOne(filter, updatedDoc, options)
-        res.send(result)
+        $set: {
+          name,
+          email,
+          phone,
+          type,
+          receiverName,
+          weight,
+          receiverAddress,
+          receiverPhone,
+          requestedTime,
+          latitude,
+          longitude,
+          price,
+          bookingDate,
+          deliveryManId,
+          status,
+          approxDelivery,
+        },
+      };
+      const result = await parcelsCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
 
-
-    })
+    // for cancel any parcel
+    app.delete("/delete/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await parcelsCollection.deleteOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
-
-
-    
-
-
-
-
-
-
-
-
-
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -131,19 +134,10 @@ async function run() {
 }
 run().catch(console.dir);
 
+app.get("/", (req, res) => {
+  res.send("RAPIDRUSH is rushing for delivery");
+});
 
-
-
-
-
-
-
-
-
-app.get("/", (req,res) => {
-    res.send("RAPIDRUSH is rushing for delivery")
-})
-
-app.listen(port, ()=>{
-    console.log(`RapidRush is running on port ${port}`);
-})
+app.listen(port, () => {
+  console.log(`RapidRush is running on port ${port}`);
+});
