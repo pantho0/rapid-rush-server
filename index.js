@@ -134,6 +134,11 @@ async function run() {
       res.send(result)
     })
     
+    app.get("/users", async(req,res)=>{
+      const result = await usersCollection.find().toArray();
+      res.send(result)
+    })
+
     //For checking user role : 
     app.get("/user/role/:email", async(req,res)=>{
       const email = req.params.email;
@@ -142,7 +147,43 @@ async function run() {
       console.log(result);
       res.send(result)
     })  
-    
+
+    // Role changing api for admin : 
+    app.patch("/user/makeAdmin/:id", async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)}
+      const updatedRole = {
+        $set : {
+          role : "admin"
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedRole)
+      res.send(result)
+    })
+    // Role changing api for user :
+    app.patch("/user/makeUser/:id", async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)}
+      const updatedRole = {
+        $set : {
+          role : "user"
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedRole)
+      res.send(result)
+    })
+    // Role changing api for user :
+    app.patch("/user/makedBoy", async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updatedRole = {
+        $set : {
+          role : "dBoy"
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedRole)
+      res.send(result)
+    })
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
