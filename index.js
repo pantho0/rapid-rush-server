@@ -23,6 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const parcelsCollection = client.db("RapidRush").collection("parcels");
+    const usersCollection = client.db("RapidRush").collection("users");
     // To save user parcel data api
     app.post("/parcels", async (req, res) => {
       try {
@@ -119,6 +120,29 @@ async function run() {
         console.log(error);
       }
     });
+
+
+    //For save user info :
+    app.post("/users", async(req,res)=>{
+      const user = req.body;
+      const query = {email: user.email}
+      const isExist = await usersCollection.findOne(query)
+      if(isExist){
+        return res.send({message: "user exist", insertedId: null})
+      }
+      const result = await usersCollection.insertOne(user)
+      res.send(result)
+    })
+    
+    //For checking user role : 
+    app.get("/user/role/:email", async(req,res)=>{
+      const email = req.params.email;
+      const query = {email : email};
+      const result = await usersCollection.findOne(query)
+      console.log(result);
+      res.send(result)
+    })  
+    
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
