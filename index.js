@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config()
 const app = express();
@@ -37,10 +37,73 @@ async function run() {
             console.log(error);
         }
     })
-    // To get user parcel data api 
+    // To get user all parcel data api 
     app.get("/bookings", async(req, res)=>{
-      const result = await parcelsCollection.find().toArray();
+      try{
+        let query = {}
+      if(req.query.email){
+        query = {email : req.query?.email}
+      }
+      const result = await parcelsCollection.find(query).toArray();
       res.send(result);
+      }
+      catch(error){
+        console.log(error);
+      }
+    })
+    // To get single parcel api
+    app.get("/update/:id",async(req,res)=>{
+      try{
+        const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await parcelsCollection.findOne(query);
+      res.send(result)
+      }catch(error){
+        console.log(error);
+      }
+    })
+    // To update parcel api
+    app.put("/update/:id", async(req,res)=>{
+      const id = req.params.id;
+      const {name,
+        email,
+        phone,
+        type,
+        receiverName,
+        weight,
+        receiverAddress,
+        receiverPhone,
+        requestedTime,
+        latitude,
+        longitude,
+        price,
+        bookingDate,
+        deliveryManId,
+        status,
+        approxDelivery} = req.body;
+      const filter = {_id: new ObjectId(id)};
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {name,
+        email,
+        phone,
+        type,
+        receiverName,
+        weight,
+        receiverAddress,
+        receiverPhone,
+        requestedTime,
+        latitude,
+        longitude,
+        price,
+        bookingDate,
+        deliveryManId,
+        status,
+        approxDelivery}}
+        const result = await parcelsCollection.updateOne(filter, updatedDoc, options)
+        res.send(result)
+
+
     })
 
     // Connect the client to the server	(optional starting in v4.7)
