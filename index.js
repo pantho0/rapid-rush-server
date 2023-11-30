@@ -24,8 +24,9 @@ async function run() {
   try {
     const parcelsCollection = client.db("RapidRush").collection("parcels");
     const usersCollection = client.db("RapidRush").collection("users");
+    const deliveryInfoCollection = client.db("RapidRush").collection("deliveryInfo");
     // To save user parcel data api
-    app.post("/parcels", async (req, res) => {
+    app.post("/parcels/:id?", async (req, res) => {
       try {
         const parcel = req.body;
         const result = await parcelsCollection.insertOne(parcel);
@@ -47,6 +48,16 @@ async function run() {
         console.log(error);
       }
     });
+    // Delivery Man's Parcel Api
+
+    app.get("/deliverList/:id", async(req,res)=>{
+      const id = req.params.id;
+      const query = {deliveryManId : id}
+      const result = await parcelsCollection.find(query).toArray()
+      res.send(result)
+    })
+
+
     // To get single parcel api
     app.get("/update/:id", async (req, res) => {
       try {
@@ -134,11 +145,24 @@ async function run() {
       res.send(result)
     })
     
-    app.get("/users", async(req,res)=>{
-      const result = await usersCollection.find().toArray();
+    app.get("/users/:email?", async(req,res)=>{
+      const email = req.params.email;
+      if(email){
+        const query = {email : email}
+        const result = await usersCollection.find(query).toArray();
+        res.send(result)
+      }else{
+        const result = await usersCollection.find().toArray();
+      res.send(result)
+      }
+      
+    })
+    
+    app.get("/deliveryMan", async(req,res)=>{
+      const query = {role : "dBoy"};
+      const result = await usersCollection.find(query).toArray()
       res.send(result)
     })
-
     //For checking user role : 
     app.get("/user/role/:email", async(req,res)=>{
       const email = req.params.email;
@@ -150,7 +174,7 @@ async function run() {
 
     // Role changing api for admin : 
     app.patch("/user/makeAdmin/:id", async(req,res)=>{
-      const id = req.params.id;
+      const id = req?.params?.id;
       const filter = {_id : new ObjectId(id)}
       const updatedRole = {
         $set : {
@@ -173,7 +197,7 @@ async function run() {
       res.send(result)
     })
     // Role changing api for user :
-    app.patch("/user/makedBoy", async(req,res)=>{
+    app.patch("/user/makedBoy/:id", async(req,res)=>{
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)}
       const updatedRole = {
@@ -182,6 +206,21 @@ async function run() {
         }
       }
       const result = await usersCollection.updateOne(filter, updatedRole)
+      res.send(result)
+    })
+    // Update Parcel Info After Assign Delivery Man 
+    app.patch("/assign/:id", async(req, res)=>{
+      const id = req.params.id;
+      const {deliveryManID} = req.body;
+      console.log(deliveryManID);
+      const filter = {_id: new ObjectId(id)}
+      const updatedInfo = {
+        $set : {
+          status : "On the way",
+          deliveryManId : deliveryManID
+        }
+      } 
+      const result = await parcelsCollection.updateOne(filter, updatedInfo)
       res.send(result)
     })
 
