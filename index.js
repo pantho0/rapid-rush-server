@@ -132,6 +132,31 @@ async function run() {
       }
     });
 
+    // Order Cancel From Dleivery Man APi 
+    app.patch("/deliveryMan/cancel/:id", async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updatedDoc = {
+        $set :{
+          status : 'cancelled'
+        }
+      }
+      const result = await parcelsCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
+
+    // order confirm from delivery man api
+    app.patch("/deliveryMan/confirm/:id", async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updatedDoc = {
+        $set :{
+          status : 'delivered'
+        }
+      }
+      const result = await parcelsCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
 
     //For save user info :
     app.post("/users", async(req,res)=>{
