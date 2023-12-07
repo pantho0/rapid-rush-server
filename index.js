@@ -35,6 +35,13 @@ async function run() {
         console.log(error);
       }
     });
+    // to save deliveryInfo api
+    app.get("/totalDelivery", async(req,res)=>{
+      const deliveryInfo = 'delivered'
+      const query = {status : deliveryInfo}
+      const result = await parcelsCollection.find(query).toArray();
+      res.send(result)
+    })
     // To get user all parcel data api
     app.get("/bookings", async (req, res) => {
       try {
@@ -182,6 +189,20 @@ async function run() {
       }
       
     })
+
+    app.get("/user/role-user", async(req,res)=>{
+      const role = 'user';
+      const query = {role: role};
+      const result = await usersCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    app.get("/user/role-dBoy", async(req,res)=>{
+      const role = 'dBoy';
+      const query = {role: role};
+      const result = await usersCollection.find(query).toArray();
+      res.send(result)
+    })
     
     app.get("/deliveryMan", async(req,res)=>{
       const query = {role : "dBoy"};
@@ -196,6 +217,17 @@ async function run() {
       console.log(result);
       res.send(result)
     })  
+    // for confirming admin or not 
+    app.get("/users/isadmin/:email", async(req,res)=>{
+      const email = req.params.email;
+      const query = {email : email};
+      const user = await usersCollection.findOne(query);
+      let admin = false;
+      if(user){
+        admin = user.role === "admin"
+      }
+      res.send({admin});
+    })
 
     // Role changing api for admin : 
     app.patch("/user/makeAdmin/:id", async(req,res)=>{
@@ -250,7 +282,7 @@ async function run() {
     })
 
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
